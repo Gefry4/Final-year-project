@@ -21,11 +21,12 @@ YOFFSET=100
 
 
 class Servo():
-	def __init__(self, servo, reverse,min,max):
+	def __init__(self, servo, reverse,min,max,offset):
 		self.servo=servo
 		self.reverse = reverse
 		self.minAngle=min
 		self.maxAngle=max
+        self.offset=offset
 		self.setAngle(90)
 		self.servo.set_pulse_width_range(625,2840)
 		self.servo.actuation_range = 210
@@ -35,13 +36,13 @@ class Servo():
 		self.angle = angle
 		if angle >= self.minAngle and  angle <= self.maxAngle:
 			if self.reverse:
-				self.servo.angle=180 - angle
+				self.servo.angle=(180 - angle ) + offset
 			else:
-				self.servo.angle = angle
+				self.servo.angle = angle + offset
 
 class Leg():
-	def __init__(self, Servo0,minB,maxB, Servo1,minS,maxS, Servo2,minW,maxW,  reverse):
-		self.servoB = Servo(Servo0, reverse, minB,maxB)
+	def __init__(self, Servo0,minB,maxB,offsetB Servo1,minS,maxS, Servo2,minW,maxW,  reverse):
+		self.servoB = Servo(Servo0, reverse, minB,maxB,offsetB)
 		self.servoS = Servo(Servo1, reverse, minS,maxS)
 		self.servoW = Servo(Servo2, False, minW,maxW)
 		time.sleep(0.1)
@@ -56,6 +57,7 @@ class Leg():
 		self.lift(140)
 		self.forward(angle)
 		self.lift(90)
+    
 	def moveTo(self,x,y):
 		#Calculate body_servo
 		body_servo= degrees(atan(x/y))
@@ -96,15 +98,11 @@ NUM_SERVOS=16 #define the number of servos
 kit = ServoKit(channels=NUM_SERVOS) #initialise the servos
 
 legs=[]
-BackRight =0
-#		    servo, min, max, servo, min, max...
-legs.append( Leg(kit.servo[0],0,90,kit.servo[1],0,115,kit.servo[2],20,180,False))
-FrontRight =1
-legs.append( Leg(kit.servo[4],90,180,kit.servo[5],55,180,kit.servo[6],0,150, False))
-FrontLeft =2
-legs.append( Leg(kit.servo[8],90,180,kit.servo[9],55,180,kit.servo[10],0,150, True))
-BackLeft =3
-legs.append( Leg(kit.servo[12],0,90,kit.servo[13],0,115,kit.servo[14],20,180, True))
+#		    servo, min, max, offset, servo, min, max, ooffset...
+legs.append( Leg(kit.servo[0],0,90,8,kit.servo[1],0,115,-12,kit.servo[2],20,180,-15,False))   #Back right leg
+legs.append( Leg(kit.servo[4],90,180,-1,kit.servo[5],55,180,10,kit.servo[6],0,150,5,False))    #Front left leg
+legs.append( Leg(kit.servo[8],90,180,0,kit.servo[9],55,180,-5,kit.servo[10],0,150,-5,True))    #Back left leg
+legs.append( Leg(kit.servo[12],0,90,2,kit.servo[13],0,115,0,kit.servo[14],20,180,-12,True))    #Front right leg
 time.sleep(2)
 
 move=[[[50,50],[50,50],[50,50],[50,50]],[[100,100],[100,100],[100,100],[100,100]]]
@@ -115,10 +113,10 @@ while True:
 	#y= int(input("Y: "))
 	#legs[leg_no].moveTo(x,y)
 	for steps in move:
-		for  i in len(steps):
-			legs[i].moveTo(steps[i][0],steps[i][1])
-		time.sleep(1)
-	time.sleep(2)	
+		for  i in range(len(steps)):
+            legs[i].moveTo(steps[i][0],steps[i][1])
+        time.sleep(1)
+    time.sleep(2)	
 
 
 	
